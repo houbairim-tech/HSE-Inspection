@@ -19,6 +19,55 @@ jobs:
           test -f source/android/settings.gradle
           test -f source/android/app/build.gradle
           test -f source/android/app/src/main/assets/index.html
+          touch source/android/gradle.properties
+          grep -q '^android.useAndroidX=true      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Download SheetJS
+        working-directory: source/android
+        run: |
+          mkdir -p app/src/main/assets/libs
+          curl -fL --retry 3 -o app/src/main/assets/libs/xlsx.full.min.js https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
+      - name: Build debug APK, release APK and AAB
+        working-directory: source/android
+        run: gradle assembleDebug assembleRelease bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HSE107E-Android
+          if-no-files-found: error
+          path: |
+            source/android/app/build/outputs/apk/debug/*.apk
+            source/android/app/build/outputs/apk/release/*.apk
+            source/android/app/build/outputs/bundle/release/*.aab
+ source/android/gradle.properties || echo 'android.useAndroidX=true' >> source/android/gradle.properties
+          grep -q '^android.enableJetifier=true      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Download SheetJS
+        working-directory: source/android
+        run: |
+          mkdir -p app/src/main/assets/libs
+          curl -fL --retry 3 -o app/src/main/assets/libs/xlsx.full.min.js https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
+      - name: Build debug APK, release APK and AAB
+        working-directory: source/android
+        run: gradle assembleDebug assembleRelease bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HSE107E-Android
+          if-no-files-found: error
+          path: |
+            source/android/app/build/outputs/apk/debug/*.apk
+            source/android/app/build/outputs/apk/release/*.apk
+            source/android/app/build/outputs/bundle/release/*.aab
+ source/android/gradle.properties || echo 'android.enableJetifier=true' >> source/android/gradle.properties
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
