@@ -1,0 +1,44 @@
+name: Build HSE 107E APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'DOC-20261119-WA0121.zip'
+      - '.github/workflows/build-android.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Android project
+        run: |
+          unzip -q DOC-20261119-WA0121.zip -d source
+          test -f source/android/settings.gradle
+          test -f source/android/app/build.gradle
+          test -f source/android/app/src/main/assets/index.html
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Download SheetJS
+        working-directory: source/android
+        run: |
+          mkdir -p app/src/main/assets/libs
+          curl -fL --retry 3 -o app/src/main/assets/libs/xlsx.full.min.js https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
+      - name: Build debug APK, release APK and AAB
+        working-directory: source/android
+        run: gradle assembleDebug assembleRelease bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HSE107E-Android
+          if-no-files-found: error
+          path: |
+            source/android/app/build/outputs/apk/debug/*.apk
+            source/android/app/build/outputs/apk/release/*.apk
+            source/android/app/build/outputs/bundle/release/*.aab
