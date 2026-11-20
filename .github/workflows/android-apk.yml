@@ -1,0 +1,72 @@
+name: Build HSE 107E Android APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/android-apk.yml'
+      - 'mobile/**'
+      - 'package.json'
+      - 'capacitor.config.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare mobile web app
+        run: npm run build:web
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Generate Android icons
+        run: |
+          mkdir -p resources
+          cp www/icon.png resources/icon.png
+          npx capacitor-assets generate --android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HSE107E-Android-APK
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 30
