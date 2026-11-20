@@ -69,6 +69,41 @@ jobs:
           html = re.sub(r'<meta name="viewport"[^>]*>', viewport, html, count=1)
           if 'id="androidMobileUI"' not in html:
               html = html.replace("</head>", f'<style id="androidMobileUI">{css}</style>\n</head>', 1)
+
+          # The source app contains a full-screen #splash layer. On the Android
+          # build, do not allow that layer to remain permanently visible if the
+          # source JavaScript fails to dismiss it.
+          splash_guard = r'''
+<script id="androidSplashGuard">
+(function () {
+  function hideSplash() {
+    var s = document.getElementById('splash');
+    if (s) {
+      s.style.display = 'none';
+      s.style.visibility = 'hidden';
+      s.style.opacity = '0';
+      s.style.pointerEvents = 'none';
+      s.setAttribute('aria-hidden', 'true');
+    }
+    document.documentElement.classList.add('android-app-ready');
+    if (document.body) document.body.classList.add('android-app-ready');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(hideSplash, 900);
+    });
+  } else {
+    setTimeout(hideSplash, 900);
+  }
+  window.addEventListener('load', function () {
+    setTimeout(hideSplash, 300);
+  });
+})();
+</script>
+'''
+          if 'id="androidSplashGuard"' not in html:
+              html = html.replace("</body>", splash_guard + "\n</body>", 1)
+
           index.write_text(html)
 
           # Force portrait mode.
