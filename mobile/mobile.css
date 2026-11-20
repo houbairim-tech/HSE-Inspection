@@ -1,0 +1,91 @@
+/* HSE 107E - Android/mobile UI layer */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-width: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior-x: none;
+}
+button, input, select, textarea { touch-action: manipulation; }
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  header {
+    position: relative !important;
+    padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
+    gap: 7px;
+  }
+  .brand { min-width: 0; gap: 7px; }
+  .logo-img { height: 34px; max-width: 104px; }
+  .logo-ocp, .logo-line { font-size: .7rem; padding: 5px 7px; }
+  header h1 {
+    font-size: .72rem;
+    line-height: 1.15;
+    max-width: 42vw;
+  }
+  .header-actions { width: 100%; gap: 5px; }
+  .header-actions .btn { flex: 1 1 auto; justify-content: center; min-height: 40px; padding: 8px 9px; font-size: .78rem; }
+  nav {
+    position: sticky !important;
+    top: 0 !important;
+    padding: 6px 7px;
+    gap: 5px;
+    z-index: 40;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-btn { min-height: 40px; padding: 8px 11px; font-size: .78rem; }
+  main { max-width: none; width: 100%; padding: 12px 9px; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .card, .stat-card { border-radius: 10px; padding: 11px; }
+  .stat-card .value { font-size: 1.35rem; }
+  .stat-card .label { font-size: .67rem; }
+  .stat-card .pct { font-size: .68rem; }
+  .toolbar, .filters { width: 100%; gap: 6px; }
+  .toolbar > *, .filters > * { max-width: 100%; }
+  input, select, textarea { min-height: 42px; font-size: 16px !important; }
+  .btn { min-height: 42px; padding: 9px 11px; font-size: .8rem; }
+  .btn-sm { min-height: 38px; padding: 7px 9px; }
+  .table-wrap { width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+  table { min-width: 680px; font-size: .75rem; }
+  th { padding: 8px 9px; }
+  td { padding: 8px 9px; }
+  .grid-2 { grid-template-columns: 1fr !important; gap: 9px; }
+  .modal-overlay { padding: 8px; align-items: flex-end; }
+  .modal {
+    width: 100%;
+    max-width: none !important;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+  .modal-header { padding: 12px 14px; }
+  .modal-body { padding: 12px 14px; }
+  .form-actions { position: sticky; bottom: 0; background: #fff; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .v2-overlay { padding: 8px; align-items: flex-end; }
+  .v2-login { width: 100%; max-height: 92vh; overflow: auto; border-radius: 16px 16px 0 0; padding: 18px; }
+  .v2-panel { right: 6px !important; left: 6px; bottom: 6px !important; width: auto !important; max-height: 88vh; border-radius: 14px; padding: 12px; }
+  .v2-grid { grid-template-columns: 1fr !important; }
+  .epc-dash-grid, .jf-grid { grid-template-columns: 1fr !important; }
+  .epc-dash-body { gap: 9px; }
+  .epc-donut { width: 64px; height: 64px; flex-basis: 64px; }
+  .epc-donut::after { width: 46px; height: 46px; }
+  .jcs { min-width: 760px; }
+  .jcs td { font-size: 10px; }
+  .jcs .ph img { max-width: 30%; }
+  .thumb-lg { max-height: 150px; }
+  #splash { padding: 16px; }
+  #splash img { max-width: 92vw; max-height: 48vh; }
+  #splash h1 { font-size: 1.2rem; }
+  #splash .btn { width: min(320px, 90vw); justify-content: center; }
+  footer { padding: 12px 8px; }
+}
+@media (max-width: 390px) {
+  .cards { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-card { padding: 9px; }
+  .stat-card .value { font-size: 1.2rem; }
+  header h1 { max-width: 34vw; }
+}
