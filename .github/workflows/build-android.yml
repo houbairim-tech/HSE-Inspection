@@ -1,4 +1,4 @@
-name: Build HSE 107E APK - Mobile Fixed
+name: Build HSE 107E APK - Android Phone UI
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'DOC-20261119-WA0121.zip'
+      - 'mobile/**'
       - '.github/workflows/build-android.yml'
 
 jobs:
@@ -16,17 +17,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract project and apply native mobile fix
+      - name: Extract Android project and apply phone UI
         run: |
           unzip -q DOC-20261119-WA0121.zip -d source
+
           python3 - <<'PY'
           from pathlib import Path
-          p=Path("source/android/app/src/main/java/com/hse107e/ocp/MainActivity.java")
-          s=p.read_text()
-          s=s.replace("s.setAllowFileAccess(false);","s.setAllowFileAccess(true);")
-          s=s.replace("s.setAllowContentAccess(false);","s.setAllowContentAccess(true);")
-          old='else web.loadUrl("file:///android_asset/index.html");'
-          new='''else {
+          import re
+
+          # Existing Android project in the source archive.
+          index = Path("source/android/app/src/main/assets/index.html")
+          activity = Path("source/android/app/src/main/java/com/hse107e/ocp/MainActivity.java")
+
+          if not index.exists():
+              raise SystemExit(f"Android web asset not found: {index}")
+          if not activity.exists():
+              raise SystemExit(f"MainActivity not found: {activity}")
+
+          # Keep the previously verified local-file/base-URL fix so the app does not open blank.
+          s = activity.read_text()
+          s = s.replace("s.setAllowFileAccess(false);", "s.setAllowFileAccess(true);")
+          s = s.replace("s.setAllowContentAccess(false);", "s.setAllowContentAccess(true);")
+          old = 'else web.loadUrl("file:///android_asset/index.html");'
+          new = '''else {
               try (java.io.InputStream is = getAssets().open("index.html")) {
                   byte[] bytes = new byte[is.available()];
                   int read = is.read(bytes);
@@ -36,30 +49,52 @@ jobs:
                   android.widget.Toast.makeText(this, "HSE 107E: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
               }
           }'''
-          if old not in s:
-              raise SystemExit("expected loadUrl line not found")
-          s=s.replace(old,new)
-          p.write_text(s)
+          if old in s:
+              s = s.replace(old, new)
+          activity.write_text(s)
+
+          # Responsive phone UI: use the CSS layer maintained in the repository.
+          css = Path("mobile/mobile.css").read_text()
+          html = index.read_text()
+          viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />'
+          html = re.sub(r'<meta name="viewport"[^>]*>', viewport, html, count=1)
+          if 'id="androidMobileUI"' not in html:
+              html = html.replace("</head>", f'<style id="androidMobileUI">{css}</style>\n</head>', 1)
+
+          # Force portrait orientation for normal phone operation.
+          manifest = Path("source/android/app/src/main/AndroidManifest.xml")
+          if manifest.exists():
+              m = manifest.read_text()
+              if "android:screenOrientation=" not in m:
+                  m = re.sub(r'(<activity[^>]*android:name="(?:\.MainActivity|com\.hse107e\.ocp\.MainActivity)"[^>]*)>',
+                             r'\1 android:screenOrientation="portrait">', m, count=1)
+                  manifest.write_text(m)
+
+          index.write_text(html)
           PY
 
           mkdir -p source/android/app/src/main/assets/libs
           curl -fL --retry 3 -o source/android/app/src/main/assets/libs/xlsx.full.min.js https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
+
           touch source/android/gradle.properties
           grep -q '^android.useAndroidX=true$' source/android/gradle.properties || echo 'android.useAndroidX=true' >> source/android/gradle.properties
           grep -q '^android.enableJetifier=true$' source/android/gradle.properties || echo 'android.enableJetifier=true' >> source/android/gradle.properties
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
+
       - name: Build mobile APK
         working-directory: source/android
         run: gradle assembleDebug --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
-          name: HSE107E-Mobile-FIXED
+          name: HSE107E-Android-Phone
           if-no-files-found: error
           path: source/android/app/build/outputs/apk/debug/*.apk
