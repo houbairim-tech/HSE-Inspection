@@ -1,4 +1,4 @@
-name: Build HSE 107E APK - Android Phone UI
+name: Build HSE 107E APK - Compatible Phone
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract Android project and apply phone UI
+      - name: Extract project and apply phone compatibility fix
         run: |
           unzip -q DOC-20261119-WA0121.zip -d source
 
@@ -25,16 +25,24 @@ jobs:
           from pathlib import Path
           import re
 
-          # Existing Android project in the source archive.
-          index = Path("source/android/app/src/main/assets/index.html")
-          activity = Path("source/android/app/src/main/java/com/hse107e/ocp/MainActivity.java")
+          root = Path("source/android")
+          if not root.exists():
+              raise SystemExit("Android project not found in source archive")
 
-          if not index.exists():
-              raise SystemExit(f"Android web asset not found: {index}")
+          # Make the APK broadly installable on older Android/EMUI devices while
+          # remaining fully compatible with current Android versions.
+          for p in root.rglob("*.gradle"):
+              s = p.read_text(errors="ignore")
+              s = re.sub(r'(?i)minSdkVersion\s+\d+', 'minSdkVersion 21', s)
+              s = re.sub(r'(?i)minSdk\s*=\s*\d+', 'minSdk = 21', s)
+              s = re.sub(r'(?i)targetSdkVersion\s+\d+', 'targetSdkVersion 35', s)
+              s = re.sub(r'(?i)targetSdk\s*=\s*\d+', 'targetSdk = 35', s)
+              p.write_text(s)
+
+          # Keep the previously verified blank-screen fix.
+          activity = root / "app/src/main/java/com/hse107e/ocp/MainActivity.java"
           if not activity.exists():
-              raise SystemExit(f"MainActivity not found: {activity}")
-
-          # Keep the previously verified local-file/base-URL fix so the app does not open blank.
+              raise SystemExit("MainActivity.java not found")
           s = activity.read_text()
           s = s.replace("s.setAllowFileAccess(false);", "s.setAllowFileAccess(true);")
           s = s.replace("s.setAllowContentAccess(false);", "s.setAllowContentAccess(true);")
@@ -53,24 +61,27 @@ jobs:
               s = s.replace(old, new)
           activity.write_text(s)
 
-          # Responsive phone UI: use the CSS layer maintained in the repository.
+          # Inject the phone layout.
+          index = root / "app/src/main/assets/index.html"
           css = Path("mobile/mobile.css").read_text()
           html = index.read_text()
           viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />'
           html = re.sub(r'<meta name="viewport"[^>]*>', viewport, html, count=1)
           if 'id="androidMobileUI"' not in html:
               html = html.replace("</head>", f'<style id="androidMobileUI">{css}</style>\n</head>', 1)
+          index.write_text(html)
 
-          # Force portrait orientation for normal phone operation.
-          manifest = Path("source/android/app/src/main/AndroidManifest.xml")
+          # Force portrait mode.
+          manifest = root / "app/src/main/AndroidManifest.xml"
           if manifest.exists():
               m = manifest.read_text()
               if "android:screenOrientation=" not in m:
-                  m = re.sub(r'(<activity[^>]*android:name="(?:\.MainActivity|com\.hse107e\.ocp\.MainActivity)"[^>]*)>',
-                             r'\1 android:screenOrientation="portrait">', m, count=1)
+                  m = re.sub(
+                      r'(<activity[^>]*android:name="(?:\\.MainActivity|com\\.hse107e\\.ocp\\.MainActivity)"[^>]*)>',
+                      r'\1 android:screenOrientation="portrait">',
+                      m, count=1
+                  )
                   manifest.write_text(m)
-
-          index.write_text(html)
           PY
 
           mkdir -p source/android/app/src/main/assets/libs
@@ -89,12 +100,20 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build mobile APK
+      - name: Build signed debug APK
         working-directory: source/android
         run: gradle assembleDebug --no-daemon
 
+      - name: Verify APK
+        run: |
+          APK="source/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          echo "APK size: $(stat -c%s "$APK") bytes"
+          sha256sum "$APK"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: HSE107E-Android-Phone
+          name: HSE107E-Android-Compatible
           if-no-files-found: error
-          path: source/android/app/build/outputs/apk/debug/*.apk
+          path: source/android/app/build/outputs/apk/debug/app-debug.apk
