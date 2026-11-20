@@ -46,6 +46,13 @@ jobs:
           if not android_index.exists():
               raise SystemExit("Android index.html not found")
 
+          final_html = android_index.read_text(errors="ignore").lower()
+          has_jcc = "jcc" in final_html
+          has_personnel = "personnel" in final_html
+          print(f"Android modules check: JCC={has_jcc}, Personnel={has_personnel}")
+          if not (has_jcc and has_personnel):
+              raise SystemExit("Required modules JCC and Gestion du personnel are missing from Android source")
+
           # Make the APK broadly installable on older Android/EMUI devices while
           # remaining fully compatible with current Android versions.
           for p in root.rglob("*.gradle"):
