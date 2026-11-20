@@ -29,6 +29,23 @@ jobs:
           if not root.exists():
               raise SystemExit("Android project not found in source archive")
 
+          # The desktop source is the reference for the complete application
+          # navigation. If it contains the JCC and Personnel modules, use that
+          # complete index in Android instead of an older reduced Android index.
+          candidates = list(Path("source").rglob("index.html"))
+          desktop_candidates = [p for p in candidates if "android" not in str(p).lower()]
+          desktop = next((p for p in desktop_candidates
+                          if "JCC" in p.read_text(errors="ignore")
+                          and ("gestion du personnel" in p.read_text(errors="ignore").lower()
+                               or "gestion du personnels" in p.read_text(errors="ignore").lower()
+                               or "personnel" in p.read_text(errors="ignore").lower())), None)
+          android_index = root / "app/src/main/assets/index.html"
+          if desktop and desktop.resolve() != android_index.resolve():
+              android_index.parent.mkdir(parents=True, exist_ok=True)
+              android_index.write_text(desktop.read_text(errors="ignore"))
+          if not android_index.exists():
+              raise SystemExit("Android index.html not found")
+
           # Make the APK broadly installable on older Android/EMUI devices while
           # remaining fully compatible with current Android versions.
           for p in root.rglob("*.gradle"):
