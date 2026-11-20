@@ -49,7 +49,7 @@ jobs:
         run: |
           mkdir -p resources
           cp www/icon.png resources/icon.png
-          npx capacitor-assets generate --android
+          npx @capacitor/assets generate --android
 
       - name: Sync Capacitor
         run: npx cap sync android
