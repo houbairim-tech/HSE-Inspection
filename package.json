@@ -1,0 +1,21 @@
+{
+  "name": "hse-107e-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HSE 107E OCP Android wrapper",
+  "scripts": {
+    "build:web": "node mobile/prepare-web.mjs",
+    "cap:sync": "npm run build:web && npx cap sync android",
+    "android:debug": "npm run cap:sync && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run cap:sync && cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.2",
+    "@capacitor/core": "8.6.2",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "8.0.1",
+    "@capacitor/cli": "8.6.2"
+  }
+}
