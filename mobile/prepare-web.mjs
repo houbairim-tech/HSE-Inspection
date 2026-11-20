@@ -18,7 +18,7 @@ const index = path.join(www, 'index.html');
 let html = fs.readFileSync(index, 'utf8');
 html = html.replace('</head>', `<style id="androidMobileUI">${css}</style>\n</head>`);
 html = html.replace('<meta name="viewport" content="width=device-width, initial-scale=1.0" />', '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />');
-html = html.replace(/<script src="libs\\/xlsx\\.full\\.min\\.js"><\\/script>/, '<script src="libs/xlsx.full.min.js"></script>');
+html = html.replace('<script src="libs/xlsx.full.min.js"></script>', '<script src="libs/xlsx.full.min.js"></script>');
 fs.writeFileSync(index, html, 'utf8');
 
 const xlsx = path.join(root, 'node_modules', 'xlsx', 'dist', 'xlsx.full.min.js');
