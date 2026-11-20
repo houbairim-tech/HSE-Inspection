@@ -89,3 +89,185 @@ button, input, select, textarea { touch-action: manipulation; }
   .stat-card .value { font-size: 1.2rem; }
   header h1 { max-width: 34vw; }
 }
+
+/* --- Android phone refinement: forms, Inspection, Suivi and list views --- */
+@media (max-width: 768px) {
+  /* New Inspection / data-entry windows */
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: center;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: min(94vh, 900px);
+    max-height: 94vh !important;
+    margin: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    min-height: 54px;
+    padding: 12px 14px !important;
+    flex: 0 0 auto;
+  }
+  .modal-header h2, .modal-header h3 {
+    font-size: 1rem !important;
+    line-height: 1.25;
+    margin: 0;
+  }
+  .modal-body {
+    padding: 12px 14px 18px !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
+  }
+  .modal-body form,
+  .modal-body .form-grid,
+  .modal-body .grid,
+  .modal-body .grid-2 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Compact, touch-friendly fields */
+  .form-group, .field, .form-field {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  label {
+    font-size: .76rem !important;
+    line-height: 1.25;
+    margin-bottom: 5px;
+  }
+  input, select, textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: 44px !important;
+    border-radius: 9px !important;
+    padding: 9px 11px !important;
+  }
+  textarea {
+    min-height: 88px !important;
+    resize: vertical;
+  }
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding: 10px 12px !important;
+    border-top: 1px solid rgba(0,0,0,.08);
+    z-index: 5;
+  }
+  .form-actions .btn,
+  .modal-footer .btn {
+    flex: 1 1 0;
+    min-width: 120px;
+  }
+
+  /* Inspection / Suivi toolbars */
+  .toolbar, .filters, .inspection-toolbar, .suivi-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px !important;
+    margin-bottom: 10px;
+  }
+  .toolbar input, .toolbar select,
+  .filters input, .filters select,
+  .inspection-toolbar input, .inspection-toolbar select,
+  .suivi-toolbar input, .suivi-toolbar select {
+    flex: 1 1 150px;
+    min-width: 0 !important;
+  }
+  .toolbar .btn, .filters .btn,
+  .inspection-toolbar .btn, .suivi-toolbar .btn {
+    flex: 0 1 auto;
+  }
+
+  /* Inspection/Suivi cards: one clean card per item on a phone */
+  .inspection-list, .suivi-list, .inspection-cards, .suivi-cards {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+    width: 100% !important;
+  }
+  .inspection-card, .suivi-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    border-radius: 12px !important;
+    padding: 11px !important;
+  }
+
+  /* Tables used for Inspection/Suivi remain usable without shrinking text */
+  .inspection-table, .suivi-table {
+    width: max-content !important;
+    min-width: 720px !important;
+  }
+  .inspection-table-wrap, .suivi-table-wrap {
+    width: 100% !important;
+    max-width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+
+  /* Better mobile page titles and section spacing */
+  main > section, main > .section, .page-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .section-title, .page-title {
+    font-size: 1rem !important;
+    line-height: 1.25;
+    margin: 8px 0 10px !important;
+  }
+
+  /* Navigation tabs: readable without forcing the page wider than the phone */
+  nav {
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto !important;
+  }
+  nav .nav-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Action buttons on small screens */
+  .actions, .card-actions, .table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .actions .btn, .card-actions .btn, .table-actions .btn {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  main { padding: 10px 8px !important; }
+  .cards { gap: 7px !important; }
+  .card, .stat-card { padding: 9px !important; }
+  .modal { height: 96vh; max-height: 96vh !important; border-radius: 16px 16px 0 0 !important; }
+  .modal-body { padding: 10px 12px 16px !important; }
+  .form-actions .btn, .modal-footer .btn {
+    min-width: 0;
+    flex: 1 1 45%;
+  }
+  .toolbar, .filters, .inspection-toolbar, .suivi-toolbar {
+    align-items: stretch;
+  }
+  .toolbar .btn, .filters .btn,
+  .inspection-toolbar .btn, .suivi-toolbar .btn {
+    width: 100%;
+  }
+}
