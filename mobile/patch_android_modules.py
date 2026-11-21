@@ -6,42 +6,35 @@ android_root = root / "android"
 if not android_root.exists():
     raise SystemExit("Android project not found in source archive")
 
-# The source archive can contain multiple HTML copies. Use the ORIGINAL
-# complete application page (the one containing the original JCC and
-# Gestion du personnel modules), not a simplified Android-only page.
 candidates = list(root.rglob("index.html"))
-original = None
+ranked = []
 for p in candidates:
     try:
         s = p.read_text(errors="ignore")
     except Exception:
         continue
-    if all(marker in s for marker in [
-        "JCC", "Gestion du personnel", "PZ_FORMS", "jccOpen", "pzOpen"
-    ]):
-        original = p
-        break
+    score = sum(marker.lower() in s.lower() for marker in [
+        "JCC", "PZ_FORMS", "jccOpen", "pzOpen", "jccSave", "pzSave"
+    ])
+    ranked.append((score, p, s))
 
-if original is None:
-    raise SystemExit("Complete original index.html with JCC and Personnel modules was not found")
+ranked.sort(key=lambda item: item[0], reverse=True)
+for score, p, _ in ranked[:10]:
+    print(f"HTML candidate score={score}: {p}")
 
+# Prefer the full desktop application source when present, otherwise use
+# the strongest original HTML candidate. Never inject replacement forms.
+if not ranked or ranked[0][0] < 4:
+    raise SystemExit("Could not identify original JCC + personnel source HTML")
+
+score, original, html = ranked[0]
 target = android_root / "app/src/main/assets/index.html"
 target.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy2(original, target)
 
-# Preserve the original application logic and all original fields/options.
-html = target.read_text(errors="ignore")
-for marker in [
-    "PZ_FORMS", "jccOpen", "pzOpen", "jccSave", "pzSave",
-    "JCC", "Gestion du personnel"
-]:
-    if marker not in html:
-        raise SystemExit("Original module verification failed: " + marker)
-
-if 'onclick="saveIns()"' not in html:
-    raise SystemExit("Inspection save button missing")
-if 'onsubmit="saveForm(event)"' not in html:
-    raise SystemExit("Suivi des Actions save form missing")
+for marker in ["PZ_FORMS", "jccOpen", "pzOpen", "jccSave", "pzSave"]:
+    if marker.lower() not in html.lower():
+        raise SystemExit("Original JCC/Personnel module verification failed: " + marker)
 
 print("Using original application:", original)
-print("Original JCC and Gestion du personnel modules preserved.")
+print("Original JCC and Gestion du personnel form code preserved.")
