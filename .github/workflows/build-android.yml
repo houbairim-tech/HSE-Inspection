@@ -21,7 +21,17 @@ jobs:
       - name: Extract Android project
         run: unzip -q DOC-20261119-WA0121.zip -d source
 
-      - name: Apply phone modules and UI
+      - name: Checkout original application source
+        uses: actions/checkout@v4
+        with:
+          repository: houbairim-tech/Hse-ande
+          ref: main
+          path: original_source_repo
+
+      - name: Extract original application archive
+        run: unzip -q original_source_repo/HSE107E_Installer_and_Portable_Source.zip -d original_source
+
+      - name: Apply original modules and mobile UI
         run: python3 mobile/patch_android_modules.py
 
       - name: Apply Android compatibility and blank-screen fix
