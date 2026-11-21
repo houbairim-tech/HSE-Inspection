@@ -1,4 +1,5 @@
 name: Build HSE 107E APK - Final Android
+# Rebuild after JS syntax fix
 
 on:
   workflow_dispatch:
