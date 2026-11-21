@@ -1,5 +1,4 @@
-name: Build HSE 107E APK - Final Android
-# Rebuild after JCC Personnel handler escaping fix
+name: Build HSE 107E APK - Installable Android
 
 on:
   workflow_dispatch:
@@ -101,11 +100,15 @@ jobs:
           APK="source/android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           unzip -t "$APK" >/dev/null
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/$(basename "$(dirname "$APKSIGNER")")/aapt" dump badging "$APK" | head -1
           echo "APK size: $(stat -c%s "$APK") bytes"
           sha256sum "$APK"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: HSE107E-Android-Final
+          name: HSE107E-Android-Installable
           if-no-files-found: error
           path: source/android/app/build/outputs/apk/debug/app-debug.apk
