@@ -51,13 +51,13 @@ if 'id="hseDrawerStyle"' not in html:
     html = html.replace("</head>", '<style id="hseDrawerStyle">' + css + '</style>\\n</head>', 1)
 
 if 'id="hseMenuBtn"' not in html:
-    m = re.search(r'<header\\b[^>]*>', html, flags=re.I)
+    m = re.search(r'<header\b[^>]*>', html, flags=re.I)
     if not m:
         raise SystemExit("Cannot locate original header for mobile menu button")
     html = html[:m.end()] + '<button id="hseMenuBtn" type="button" aria-label="Open navigation" aria-expanded="false" onclick="hseToggleNav()">☰</button>' + html[m.end():]
 
 if 'id="hseNavBackdrop"' not in html:
-    m = re.search(r'<nav\\b[^>]*>', html, flags=re.I)
+    m = re.search(r'<nav\b[^>]*>', html, flags=re.I)
     if not m:
         raise SystemExit("Cannot locate original navigation")
     html = html[:m.start()] + '<div id="hseNavBackdrop" onclick="hseCloseNav()" aria-hidden="true"></div>' + html[m.start():]
