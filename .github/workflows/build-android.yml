@@ -1,5 +1,5 @@
 name: Build HSE 107E APK - Final Android
-# Rebuild after JS syntax fix
+# Rebuild after JCC Personnel handler escaping fix
 
 on:
   workflow_dispatch:
