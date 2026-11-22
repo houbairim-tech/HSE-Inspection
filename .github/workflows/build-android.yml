@@ -8,6 +8,7 @@ on:
     paths:
       - 'DOC-20261119-WA0121.zip'
       - 'mobile/**'
+      - 'cloudflare/**'
       - '.github/workflows/build-android.yml'
 
 jobs:
@@ -69,8 +70,11 @@ jobs:
           index = root / "app/src/main/assets/index.html"
           html = index.read_text()
           css = Path("mobile/mobile.css").read_text()
+          cloud = Path("cloudflare/cloud-sync.js").read_text()
           viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />'
           html = re.sub(r'<meta name="viewport"[^>]*>', viewport, html, count=1)
+          if 'src="cloud-sync.js"' not in html:
+              html = html.replace("</head>", '<script src="cloud-sync.js"></script>\\n</head>', 1)
           if 'id="androidMobileUI"' not in html:
               html = html.replace("</head>", f'<style id="androidMobileUI">{css}</style>\n</head>', 1)
           guard = '<script id="androidSplashGuard">window.addEventListener("load",function(){setTimeout(function(){var s=document.getElementById("splash");if(s){s.style.display="none";s.style.visibility="hidden";s.style.opacity="0";s.style.pointerEvents="none";}},900);});</script>'
