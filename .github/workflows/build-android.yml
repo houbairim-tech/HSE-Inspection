@@ -91,6 +91,7 @@ jobs:
                   manifest.write_text(m)
           PY
 
+          cp cloudflare/cloud-sync.js source/android/app/src/main/assets/cloud-sync.js
           mkdir -p source/android/app/src/main/assets/libs
           curl -fL --retry 3 -o source/android/app/src/main/assets/libs/xlsx.full.min.js https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
           touch source/android/gradle.properties
