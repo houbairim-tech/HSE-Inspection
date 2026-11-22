@@ -128,3 +128,45 @@ jobs:
           name: HSE107E-Android-Installable
           if-no-files-found: error
           path: source/android/app/build/outputs/apk/debug/app-debug.apk
+
+
+  build-windows-in-same-run:
+    name: Build HSE 107E Windows EXE
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original desktop source
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/houbairim-tech/Hse-ande/main/HSE107E_Installer_and_Portable_Source.zip" -OutFile "HSE107E_Installer_and_Portable_Source.zip"
+          Expand-Archive -Path "HSE107E_Installer_and_Portable_Source.zip" -DestinationPath "source"
+      - name: Inject Cloudflare client
+        shell: pwsh
+        run: |
+          Copy-Item "cloudflare/cloud-sync.js" "source/desktop/cloud-sync.js" -Force
+          $p="source/desktop/index.html"
+          $s=Get-Content $p -Raw
+          if($s -notmatch 'cloud-sync.js'){ $s=$s -replace '</head>','<script src="cloud-sync.js"></script></head>' }
+          Set-Content -Path $p -Value $s -Encoding UTF8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install desktop dependencies
+        working-directory: source/desktop
+        run: npm install
+      - name: Build NSIS installer and portable EXE
+        working-directory: source/desktop
+        run: npm run dist
+      - name: Verify EXE outputs
+        shell: pwsh
+        run: |
+          $files=Get-ChildItem "source/desktop/dist" -Filter *.exe -File
+          if($files.Count -lt 2){ throw "Expected NSIS installer and portable EXE." }
+          $files | ForEach-Object { Write-Host "$($_.Name) $($_.Length) bytes" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HSE107E-Windows-Final
+          if-no-files-found: error
+          path: source/desktop/dist/*.exe
